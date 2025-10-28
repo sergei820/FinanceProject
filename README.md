@@ -1,19 +1,18 @@
 # FinanceProject
 
-    python3 -m venv .venv
-    source .venv/bin/activate
+
 
 # Activate the virtual environment
 
-    python3 -m venv .venv
+    python3 -m venv venv
     source .venv/bin/activate
-    curl -LsSf https://astral.sh/uv/install.sh | sh
-    uv --version
-
 
 # Install all dependencies
 
-    
+    pip install -r requirements.txt
+    //
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+    uv --version
 
 # To run the Django development server, use the following command:
 
