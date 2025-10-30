@@ -1,0 +1,31 @@
+# Frontend Pages
+- Home
+- About
+- Post
+- Search
+- Register
+- Login
+- Dashboard
+
+# Marketing Specs:
+- Add logo
+- Decide on color scheme
+- Social media icons for footer
+- Responsive design for mobile and tablet
+- Must have minimalistic and modern look
+
+# Functional Requirements:
+- User authentication (register, login, logout)
+- Post creation, editing, and deletion
+- Search functionality for posts
+- User profile management
+- Home Page: Show more posts / Pagination
+- Post of the month section on Home Page
+- Ability to publish / unpublish posts
+- Email notifications
+
+
+# Add later:
+- Mobile App
+- Favorites posts
+
