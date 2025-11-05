@@ -62,12 +62,6 @@ WSGI_APPLICATION = 'financeapp.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': str(BASE_DIR / 'db.sqlite3'),
-#     }
-# }
 DATABASES = {
     'default': {
         'ENGINE': os.getenv('DB_ENGINE'),
@@ -78,16 +72,6 @@ DATABASES = {
         'PASSWORD': os.getenv('DB_PASSWORD'),
     }
 }
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': 'financeappdb',
-#         'USER': 'postgres',
-#         'PASSWORD': 'N%0p@$sw_We1^c8s^2',
-#         'HOST': 'localhost',
-#         'PORT': '5433',
-#     }
-# }
 
 
 # Password validation
