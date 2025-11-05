@@ -18,8 +18,6 @@
 
     brew install postgresql
     brew install python
-    pip install django
-
 
 # To run the Django development server, use the following command:
 
