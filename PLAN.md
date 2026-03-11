@@ -23,6 +23,9 @@ todos:
   - id: tests-dockerfile
     content: Create tests/Dockerfile and tests/pyproject.toml
     status: pending
+  - id: docker-compose
+    content: Create docker-compose.yml with app, db, and tests services
+    status: pending
   - id: root-files
     content: Update .gitignore and README.md
     status: pending
@@ -66,12 +69,15 @@ FinanceProject/
 │   ├── uv.lock
 │   ├── pytest.ini
 │   └── test_home.py              # Starter smoke test
+├── docker-compose.yml            # Orchestrates app + db + tests
 ├── .env
 ├── .gitignore
 └── README.md
 ```
 
 The outer `app/` is just a container directory. Inside it, `financeapp/` is the Django project Python package (holding `settings.py`, `urls.py`, etc.), and `pages/` is a Django app sitting alongside it. This avoids the confusing `financeapp/financeapp/` double-nesting while keeping the Django package properly named.
+
+Django REST Framework is included from the start so the app serves both HTML pages and a REST API. This API will be the single source of truth for a future mobile app and content automation service (both in their own separate repos).
 
 ```mermaid
 graph TB
@@ -118,7 +124,7 @@ graph TB
 ### 2. Create `app/` Django project
 
 - `mkdir app && cd app`
-- `uv init` to create `pyproject.toml`, then add dependencies: `django`, `psycopg2-binary`, `gunicorn`
+- `uv init` to create `pyproject.toml`, then add dependencies: `django`, `djangorestframework`, `psycopg2-binary`, `gunicorn`
 - `uv venv .venv --python=3.12`
 - `uv run django-admin startproject financeapp .` -- creates `manage.py` + `financeapp/` package
 - `uv run python manage.py startapp pages` -- creates the first app
@@ -126,17 +132,19 @@ graph TB
 ### 3. Configure Django settings
 
 - In `app/financeapp/settings.py`:
-  - Register `pages` in `INSTALLED_APPS`
+  - Register `pages` and `rest_framework` in `INSTALLED_APPS`
   - Set `TEMPLATES DIRS` to `BASE_DIR / 'templates'`
   - Configure `DATABASES` for PostgreSQL using `os.environ` (from `.env`):
     - ENGINE, HOST, PORT, NAME, USER, PASSWORD
   - Set `STATIC_URL` and `STATICFILES_DIRS`
+  - Add basic `REST_FRAMEWORK` config (default permission classes, pagination)
 
-### 4. Create the one-page view and template
+### 4. Create the one-page view, template, and API endpoint
 
-- `pages/views.py`: `HomePageView` using `TemplateView`
+- `pages/views.py`: `HomePageView` using `TemplateView` + a simple DRF `APIView` at `/api/status/`
 - `pages/urls.py`: route `''` to `HomePageView`
-- `financeapp/urls.py`: include `pages.urls`
+- `pages/api_urls.py`: route `/api/status/` to the API status view
+- `financeapp/urls.py`: include `pages.urls` and `pages.api_urls`
 - `app/templates/base.html`: base HTML skeleton
 - `app/templates/pages/home.html`: landing page extending base
 
@@ -168,7 +176,37 @@ graph TB
 - `tests/pytest.ini`: basic config
 - `tests/test_home.py`: a simple smoke test that hits `http://app:8000/` and asserts HTTP 200
 
-### 9. Update root files
+### 9. Create `docker-compose.yml` at the repo root
+
+Three services orchestrated together:
+
+- **db** (PostgreSQL):
+  - Image: `postgres:16`
+  - Env vars from `.env` for `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD`
+  - Named volume for data persistence
+  - Healthcheck so app waits for DB readiness
+
+- **app** (Django):
+  - Build context: `./app`
+  - `depends_on: db` (with healthcheck condition)
+  - Env vars from `.env` (DB connection, SECRET_KEY)
+  - Exposes port `8000`
+
+- **tests** (pytest):
+  - Build context: `./tests`
+  - `depends_on: app`
+  - Runs `pytest` against `http://app:8000/`
+  - Exits after test run completes
+
+Run everything: `docker compose up --build --abort-on-container-exit`
+
+```mermaid
+graph LR
+  db["db (postgres:16)"] -->|"5432"| app["app (Django :8000)"]
+  app -->|"8000"| tests["tests (pytest)"]
+```
+
+### 10. Update root files
 
 - Update `.gitignore` to cover both `.venv/` dirs, `__pycache__/`, `db.sqlite3`, `.env`
 - Update `README.md` with setup and run instructions
